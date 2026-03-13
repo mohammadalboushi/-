@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-Tools</title>
+<meta name="description" content="أدوات رقمية احترافية لتوليد الإيميلات الوهمية وكلمات السر وأسماء المستخدمين بثانية واحدة">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="confirmModal" class="modal-overlay">
+<div class="modal-box">
+<div class="modal-title">تأكيد المسح</div>
+<div class="modal-desc">هل أنت متأكد أنك تريد مسح جميع السجلات؟ لا يمكن التراجع عن هذا الإجراء.</div>
+<div class="modal-btns">
+<button class="btn btn-cancel" onclick="closeModal()">إلغاء</button>
+<button class="btn btn-confirm" onclick="confirmClearHistory()">نعم، امسح السجل</button>
+</div>
+</div>
+</div>
+
+<div id="savedEmailModal" class="modal-overlay">
+<div class="modal-box modal-fullscreen">
+<div class="modal-title" id="savedEmailTitle" style="direction: ltr;"></div>
+<div class="inbox-container" style="display: block; margin-top: 15px;">
+<div id="savedInboxList" class="inbox-list">
+<div class="empty-inbox">( إنتظر 15 ثانية بعد طلب الكود )</div>
+</div>
+</div>
+<div class="modal-btns" style="margin-top: 20px;">
+<button class="btn btn-cancel" onclick="closeSavedModal()">إغلاق</button>
+</div>
+</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="wrapper">
+
+  <div class="header">
+    <div class="logo-ring">
+      <svg viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="36" stroke="url(#ringGrad)" stroke-width="2" stroke-dasharray="8 4" />
+        <defs>
+          <linearGradient id="ringGrad" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#00d4ff"/>
+            <stop offset="50%" stop-color="#7b5ea7"/>
+            <stop offset="100%" stop-color="#ff3d71"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="logo-inner">⚡</div>
+    </div>
+    <div class="site-title">X-Tools</div>
+    <div class="site-sub">منصة التوليد السريع</div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num" id="totalGenerated">0</span>
+      <span class="stat-label">تم التوليد</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="totalCopied">0</span>
+      <span class="stat-label">تم النسخ</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="sessionTime">0m</span>
+      <span class="stat-label">وقت الجلسة</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">📧</div>
+      <div>
+        <div class="card-title">مولد الإيميل</div>
+        <div class="card-desc">أنشئ إيميلات عشوائية أو بريد مؤقت حقيقي</div>
+      </div>
+    </div>
+
+    <div class="domain-grid">
+      <button class="domain-btn active" onclick="selectDomain(this,'gmail.com')">Gmail</button>
+      <button class="domain-btn" onclick="selectDomain(this,'hotmail.com')">Hotmail</button>
+      <button class="domain-btn" onclick="selectDomain(this,'yahoo.com')">Yahoo</button>
+      <button class="domain-btn" onclick="selectDomain(this,'proton.me')">Proton</button>
+      <button class="domain-btn" onclick="selectDomain(this,'outlook.com')">Outlook</button>
+      <button class="domain-btn" onclick="selectDomain(this,'icloud.com')">iCloud</button>
+      <button class="domain-btn" onclick="selectDomain(this,'mail.com')">Mail</button>
+      <button class="domain-btn" onclick="selectDomain(this,'tempmail')">بريد مؤقت</button>
+    </div>
+
+    <div class="output-wrap">
+      <input type="text" class="output-field" id="emailOutput" readonly>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="genEmailBtn" onclick="generateEmail(this, event)">
+        <span>⚡</span>
+        توليد إيميل
+      </button>
+      <button class="btn btn-copy" id="copyEmailBtn" onclick="copyField('emailOutput','copyEmailBtn')">
+        <span>📋</span>
+        نسخ
+      </button>
+    </div>
+
+    <div class="inbox-container" id="inboxContainer" style="display: none;">
+      <div class="inbox-header">صندوق الوارد 📥</div>
+      <div id="inboxList" class="inbox-list">
+        <div class="empty-inbox">( إنتظر 15 ثانية بعد طلب الكود )</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon red">🔐</div>
+      <div>
+        <div class="card-title">مولد كلمة السر</div>
+        <div class="card-desc">كلمات سر قوية ومشفرة</div>
+      </div>
+    </div>
+
+    <div class="length-wrap">
+      <div class="length-header">
+        <span>طول كلمة السر</span>
+        <span class="length-val" id="lengthVal">16</span>
+      </div>
+      <input type="range" id="passLength" min="8" max="32" value="16" oninput="document.getElementById('lengthVal').textContent=this.value">
+    </div>
+
+    <div class="pass-options" id="passOptions">
+      <label class="option-toggle checked" onclick="toggleOption(this)">
+        <div class="toggle-box">✓</div>
+        <span>أحرف كبيرة</span>
+      </label>
+      <label class="option-toggle checked" onclick="toggleOption(this)">
+        <div class="toggle-box">✓</div>
+        <span>أحرف صغيرة</span>
+      </label>
+      <label class="option-toggle checked" onclick="toggleOption(this)">
+        <div class="toggle-box">✓</div>
+        <span>أرقام</span>
+      </label>
+      <label class="option-toggle checked" onclick="toggleOption(this)">
+        <div class="toggle-box">✓</div>
+        <span>رموز خاصة</span>
+      </label>
+    </div>
+
+    <div class="strength-wrap">
+      <div class="strength-label">
+        <span>قوة كلمة السر</span>
+        <span class="strength-text" id="strengthText" style="color:var(--muted)">—</span>
+      </div>
+      <div class="strength-bar">
+        <div class="strength-fill" id="strengthFill"></div>
+      </div>
+    </div>
+
+    <div class="output-wrap">
+      <input type="text" class="output-field" id="passOutput" readonly>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="generatePass(this, event)">
+        <span>🔑</span>
+        توليد كلمة سر
+      </button>
+      <button class="btn btn-copy" id="copyPassBtn" onclick="copyField('passOutput','copyPassBtn')">
+        <span>📋</span>
+        نسخ
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon purple">👤</div>
+      <div>
+        <div class="card-title">مولد اسم المستخدم</div>
+        <div class="card-desc">أسماء مستخدم فريدة وإبداعية</div>
+      </div>
+    </div>
+
+    <div class="username-options">
+      <button class="style-chip active" onclick="selectStyle(this,'cool')">😎 كول</button>
+      <button class="style-chip" onclick="selectStyle(this,'gamer')">🎮 جيمر</button>
+      <button class="style-chip" onclick="selectStyle(this,'pro')">💼 بروفيشنال</button>
+      <button class="style-chip" onclick="selectStyle(this,'arabic')">🌙 عربي</button>
+      <button class="style-chip" onclick="selectStyle(this,'random')">🎲 عشوائي</button>
+    </div>
+
+    <div class="output-wrap">
+      <input type="text" class="output-field" id="userOutput" readonly>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="generateUsername(this, event)">
+        <span>✨</span>
+        توليد اسم
+      </button>
+      <button class="btn btn-copy" id="copyUserBtn" onclick="copyField('userOutput','copyUserBtn')">
+        <span>📋</span>
+        نسخ
+      </button>
+    </div>
+  </div>
+
+  <div class="history-panel">
+    <div class="card-header" style="margin-bottom:0">
+      <div class="card-icon blue" style="width:34px;height:34px;font-size:16px">📝</div>
+      <div class="history-header" style="flex:1;margin-bottom:0">
+        <div class="history-title">السجل الأخير</div>
+        <button class="clear-btn" onclick="askClearHistory()">مسح الكل 🗑️</button>
+      </div>
+    </div>
+    <div style="height:1px;background:rgba(255,255,255,0.05);margin:16px 0"></div>
+    <div class="history-list" id="historyList">
+      <div class="empty-history">لا يوجد سجل بعد...</div>
+    </div>
+  </div>
+
+  <div class="history-panel" style="margin-top: 20px;">
+    <div class="card-header" style="margin-bottom:0">
+      <div class="card-icon blue" style="width:34px;height:34px;font-size:16px">💾</div>
+      <div class="history-header" style="flex:1;margin-bottom:0">
+        <div class="history-title">إيميلاتي المحفوظة (البريد المؤقت)</div>
+      </div>
+    </div>
+    <div style="height:1px;background:rgba(255,255,255,0.05);margin:16px 0"></div>
+    <div class="history-list" id="savedEmailsList">
+      <div class="empty-history">لا يوجد إيميلات محفوظة بعد...</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
